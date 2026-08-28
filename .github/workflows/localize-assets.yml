@@ -1,0 +1,33 @@
+name: Localize Aimee site assets
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/localize-assets.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  localize:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Download website assets
+        run: |
+          mkdir -p assets
+          curl -L --fail --retry 3 'https://aimeecruises.com/wp-content/uploads/2026/03/aimee-cruises-banner-scaled.jpg.webp' -o assets/reception.webp
+          curl -L --fail --retry 3 'https://aimeecruises.com/wp-content/uploads/2026/04/eden-balcony-suites-4-2-1024x768-2.webp' -o assets/eden.webp
+          test -s assets/reception.webp
+          test -s assets/eden.webp
+      - name: Commit localized assets
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/reception.webp assets/eden.webp
+          git commit -m 'Localize Aimee imagery for proposal site'
+          git push
