@@ -1,0 +1,56 @@
+name: Promote scenario document link
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/promote-scenario-link.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Make scenario link prominent
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+
+          css_anchor = '.flow-arrow{width:2px;height:18px;background:#3b6ca7;margin-left:18px}'
+          css_add = css_anchor + '.scenario-link{margin-top:20px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 15px;border-radius:14px;background:linear-gradient(135deg,#1155d9,#00b7ee);color:#fff;text-decoration:none;font-size:13px;font-weight:900;box-shadow:0 10px 28px rgba(0,95,210,.26);transition:transform .18s ease,box-shadow .18s ease,filter .18s ease}.scenario-link:hover{transform:translateY(-1px);box-shadow:0 14px 34px rgba(0,95,210,.34);filter:brightness(1.04)}.scenario-link .scenario-icon{flex:0 0 auto;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:rgba(255,255,255,.15);font-size:17px}.scenario-link .scenario-copy{display:flex;flex-direction:column;line-height:1.2}.scenario-link .scenario-copy small{font-size:10px;font-weight:700;color:#d9f2ff;margin-bottom:3px;letter-spacing:.03em}.scenario-link .scenario-copy strong{font-size:13px;color:#fff}.scenario-link .scenario-arrow{font-size:18px;line-height:1}'
+          if '.scenario-link{' not in s:
+              if css_anchor not in s:
+                  raise SystemExit('CSS anchor not found')
+              s = s.replace(css_anchor, css_add, 1)
+
+          old = '<a href="https://docs.google.com/document/d/15IKrsgezl0s-kGOCobbOzMgLWdagwhnXxfRQ-AeJnYw/edit?usp=drivesdk" target="_blank" style="margin-top:18px;text-decoration:none"><span class="tag" style="background:#123d7c;color:#9fe8ff">Xem kịch bản Aime’e ↗</span></a>'
+          new = '<a class="scenario-link" href="https://docs.google.com/document/d/15IKrsgezl0s-kGOCobbOzMgLWdagwhnXxfRQ-AeJnYw/edit?usp=drivesdk" target="_blank" rel="noopener noreferrer" aria-label="Xem kịch bản trải nghiệm 3D của Aime’e trên Google Docs"><span class="scenario-icon">▣</span><span class="scenario-copy"><small>TÀI LIỆU THAM KHẢO</small><strong>Xem kịch bản trải nghiệm 3D</strong></span><span class="scenario-arrow">↗</span></a>'
+          if old in s:
+              s = s.replace(old, new, 1)
+          elif 'Xem kịch bản trải nghiệm 3D' not in s:
+              raise SystemExit('Scenario link markup not found')
+
+          p.write_text(s, encoding='utf-8')
+          PY
+
+      - name: Commit update
+        run: |
+          if git diff --quiet -- index.html; then
+            echo "No changes needed"
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Make scenario document button prominent'
+          git push
