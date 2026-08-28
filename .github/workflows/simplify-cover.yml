@@ -1,0 +1,44 @@
+name: Simplify proposal cover
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/simplify-cover.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  simplify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Simplify cover
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          pattern=r'<div class="summary-strip">.*?</div>\s*<div class="meta">.*?</div>\s*<div class="meta">.*?</div><div class="meta">.*?</div>'
+          replacement='<div class="cover-scope"><span>PHASE 1</span><b>Welcome / Reception + Eden Balcony Suite</b></div>\n        <div class="cover-meta"><span>Phòng Kinh doanh SAVA META</span><span>28/08/2026</span></div>'
+          s2,n=re.subn(pattern,replacement,s,count=1,flags=re.S)
+          if n!=1:
+            raise SystemExit(f'cover block replace count={n}')
+          css='''.cover-scope{display:inline-flex;align-items:center;gap:12px;margin-top:34px;padding:10px 14px 10px 10px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.07);border-radius:999px;color:#eaf5ff}.cover-scope span{display:inline-grid;place-items:center;padding:7px 10px;border-radius:999px;background:linear-gradient(135deg,var(--sava),var(--sava2));font-size:10px;font-weight:900;letter-spacing:.08em;color:#fff}.cover-scope b{font-size:13px;letter-spacing:.01em}.cover-meta{display:flex;gap:18px;flex-wrap:wrap;margin-top:22px;color:#c8d8ef;font-size:12px}.cover-meta span+span:before{content:"•";margin-right:18px;color:#6fcff6}@media(max-width:560px){.cover-scope{align-items:flex-start;border-radius:18px;flex-direction:column;gap:8px;padding:11px 13px}.cover-meta{gap:8px;flex-direction:column}.cover-meta span+span:before{content:"";margin:0}}'''
+          if '.cover-scope{' not in s2:
+            s2=s2.replace('</style>',css+'</style>')
+          p.write_text(s2,encoding='utf-8')
+          PY
+      - name: Commit simplified cover
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Simplify cover and remove repeated commercial metrics'
+          git push
