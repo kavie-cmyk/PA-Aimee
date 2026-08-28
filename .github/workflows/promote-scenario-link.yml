@@ -19,26 +19,37 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Make scenario link prominent
+      - name: Add prominent scenario document button
         run: |
           python - <<'PY'
           from pathlib import Path
+          import re
+
           p = Path('index.html')
           s = p.read_text(encoding='utf-8')
 
-          css_anchor = '.flow-arrow{width:2px;height:18px;background:#3b6ca7;margin-left:18px}'
-          css_add = css_anchor + '.scenario-link{margin-top:20px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 15px;border-radius:14px;background:linear-gradient(135deg,#1155d9,#00b7ee);color:#fff;text-decoration:none;font-size:13px;font-weight:900;box-shadow:0 10px 28px rgba(0,95,210,.26);transition:transform .18s ease,box-shadow .18s ease,filter .18s ease}.scenario-link:hover{transform:translateY(-1px);box-shadow:0 14px 34px rgba(0,95,210,.34);filter:brightness(1.04)}.scenario-link .scenario-icon{flex:0 0 auto;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:rgba(255,255,255,.15);font-size:17px}.scenario-link .scenario-copy{display:flex;flex-direction:column;line-height:1.2}.scenario-link .scenario-copy small{font-size:10px;font-weight:700;color:#d9f2ff;margin-bottom:3px;letter-spacing:.03em}.scenario-link .scenario-copy strong{font-size:13px;color:#fff}.scenario-link .scenario-arrow{font-size:18px;line-height:1}'
-          if '.scenario-link{' not in s:
-              if css_anchor not in s:
-                  raise SystemExit('CSS anchor not found')
-              s = s.replace(css_anchor, css_add, 1)
+          # Remove any older, subtle version of the same Google Docs link so there is only one CTA.
+          s = re.sub(
+              r'<a[^>]*href="https://docs\.google\.com/document/d/15IKrsgezl0s-kGOCobbOzMgLWdagwhnXxfRQ-AeJnYw/[^\"]*"[^>]*>.*?</a>',
+              '',
+              s,
+              count=1,
+              flags=re.S,
+          )
 
-          old = '<a href="https://docs.google.com/document/d/15IKrsgezl0s-kGOCobbOzMgLWdagwhnXxfRQ-AeJnYw/edit?usp=drivesdk" target="_blank" style="margin-top:18px;text-decoration:none"><span class="tag" style="background:#123d7c;color:#9fe8ff">Xem kịch bản Aime’e ↗</span></a>'
-          new = '<a class="scenario-link" href="https://docs.google.com/document/d/15IKrsgezl0s-kGOCobbOzMgLWdagwhnXxfRQ-AeJnYw/edit?usp=drivesdk" target="_blank" rel="noopener noreferrer" aria-label="Xem kịch bản trải nghiệm 3D của Aime’e trên Google Docs"><span class="scenario-icon">▣</span><span class="scenario-copy"><small>TÀI LIỆU THAM KHẢO</small><strong>Xem kịch bản trải nghiệm 3D</strong></span><span class="scenario-arrow">↗</span></a>'
-          if old in s:
-              s = s.replace(old, new, 1)
-          elif 'Xem kịch bản trải nghiệm 3D' not in s:
-              raise SystemExit('Scenario link markup not found')
+          css = '''
+.scenario-cta{margin:18px 0 0;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 16px;border-radius:16px;background:linear-gradient(135deg,#1155d9,#00b7ee);color:#fff;text-decoration:none;box-shadow:0 12px 30px rgba(0,95,210,.24);transition:transform .18s ease,box-shadow .18s ease,filter .18s ease}.scenario-cta:hover{transform:translateY(-1px);box-shadow:0 16px 36px rgba(0,95,210,.32);filter:brightness(1.04)}.scenario-cta .scenario-doc-icon{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:rgba(255,255,255,.16);font-size:18px;flex:0 0 auto}.scenario-cta .scenario-doc-copy{display:flex;flex-direction:column;line-height:1.18;flex:1}.scenario-cta .scenario-doc-copy small{font-size:10px;font-weight:800;letter-spacing:.08em;color:#d8f3ff;margin-bottom:4px}.scenario-cta .scenario-doc-copy strong{font-size:14px;color:#fff}.scenario-cta .scenario-doc-arrow{font-size:20px;line-height:1;flex:0 0 auto}@media(max-width:560px){.scenario-cta{padding:12px 13px}.scenario-cta .scenario-doc-copy strong{font-size:13px}}
+'''
+          if '.scenario-cta{' not in s:
+              s = s.replace('</style>', css + '</style>', 1)
+
+          cta = '''<a class="scenario-cta" href="https://docs.google.com/document/d/15IKrsgezl0s-kGOCobbOzMgLWdagwhnXxfRQ-AeJnYw/edit?usp=drivesdk" target="_blank" rel="noopener noreferrer" aria-label="Xem kịch bản trải nghiệm 3D của Aime’e trên Google Docs"><span class="scenario-doc-icon">▣</span><span class="scenario-doc-copy"><small>TÀI LIỆU THAM KHẢO · AIME’E</small><strong>Xem kịch bản trải nghiệm 3D</strong></span><span class="scenario-doc-arrow">↗</span></a>'''
+
+          if 'Xem kịch bản trải nghiệm 3D' not in s:
+              marker = '<div class="scope-note">'
+              if marker not in s:
+                  raise SystemExit('scope-note marker not found')
+              s = s.replace(marker, cta + marker, 1)
 
           p.write_text(s, encoding='utf-8')
           PY
@@ -52,5 +63,5 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html
-          git commit -m 'Make scenario document button prominent'
+          git commit -m 'Add visible scenario document CTA'
           git push
