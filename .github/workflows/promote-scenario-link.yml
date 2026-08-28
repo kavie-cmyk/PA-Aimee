@@ -24,33 +24,18 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           import re
-
           p = Path('index.html')
           s = p.read_text(encoding='utf-8')
-
-          # Remove any older, subtle version of the same Google Docs link so there is only one CTA.
-          s = re.sub(
-              r'<a[^>]*href="https://docs\.google\.com/document/d/15IKrsgezl0s-kGOCobbOzMgLWdagwhnXxfRQ-AeJnYw/[^\"]*"[^>]*>.*?</a>',
-              '',
-              s,
-              count=1,
-              flags=re.S,
-          )
-
-          css = '''
-.scenario-cta{margin:18px 0 0;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 16px;border-radius:16px;background:linear-gradient(135deg,#1155d9,#00b7ee);color:#fff;text-decoration:none;box-shadow:0 12px 30px rgba(0,95,210,.24);transition:transform .18s ease,box-shadow .18s ease,filter .18s ease}.scenario-cta:hover{transform:translateY(-1px);box-shadow:0 16px 36px rgba(0,95,210,.32);filter:brightness(1.04)}.scenario-cta .scenario-doc-icon{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:rgba(255,255,255,.16);font-size:18px;flex:0 0 auto}.scenario-cta .scenario-doc-copy{display:flex;flex-direction:column;line-height:1.18;flex:1}.scenario-cta .scenario-doc-copy small{font-size:10px;font-weight:800;letter-spacing:.08em;color:#d8f3ff;margin-bottom:4px}.scenario-cta .scenario-doc-copy strong{font-size:14px;color:#fff}.scenario-cta .scenario-doc-arrow{font-size:20px;line-height:1;flex:0 0 auto}@media(max-width:560px){.scenario-cta{padding:12px 13px}.scenario-cta .scenario-doc-copy strong{font-size:13px}}
-'''
+          s = re.sub(r'<a[^>]*href="https://docs\.google\.com/document/d/15IKrsgezl0s-kGOCobbOzMgLWdagwhnXxfRQ-AeJnYw/[^\"]*"[^>]*>.*?</a>', '', s, count=1, flags=re.S)
+          css = ".scenario-cta{margin:18px 0 0;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 16px;border-radius:16px;background:linear-gradient(135deg,#1155d9,#00b7ee);color:#fff;text-decoration:none;box-shadow:0 12px 30px rgba(0,95,210,.24);transition:transform .18s ease,box-shadow .18s ease,filter .18s ease}.scenario-cta:hover{transform:translateY(-1px);box-shadow:0 16px 36px rgba(0,95,210,.32);filter:brightness(1.04)}.scenario-cta .scenario-doc-icon{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:rgba(255,255,255,.16);font-size:18px;flex:0 0 auto}.scenario-cta .scenario-doc-copy{display:flex;flex-direction:column;line-height:1.18;flex:1}.scenario-cta .scenario-doc-copy small{font-size:10px;font-weight:800;letter-spacing:.08em;color:#d8f3ff;margin-bottom:4px}.scenario-cta .scenario-doc-copy strong{font-size:14px;color:#fff}.scenario-cta .scenario-doc-arrow{font-size:20px;line-height:1;flex:0 0 auto}@media(max-width:560px){.scenario-cta{padding:12px 13px}.scenario-cta .scenario-doc-copy strong{font-size:13px}}"
           if '.scenario-cta{' not in s:
               s = s.replace('</style>', css + '</style>', 1)
-
-          cta = '''<a class="scenario-cta" href="https://docs.google.com/document/d/15IKrsgezl0s-kGOCobbOzMgLWdagwhnXxfRQ-AeJnYw/edit?usp=drivesdk" target="_blank" rel="noopener noreferrer" aria-label="Xem kịch bản trải nghiệm 3D của Aime’e trên Google Docs"><span class="scenario-doc-icon">▣</span><span class="scenario-doc-copy"><small>TÀI LIỆU THAM KHẢO · AIME’E</small><strong>Xem kịch bản trải nghiệm 3D</strong></span><span class="scenario-doc-arrow">↗</span></a>'''
-
+          cta = '<a class="scenario-cta" href="https://docs.google.com/document/d/15IKrsgezl0s-kGOCobbOzMgLWdagwhnXxfRQ-AeJnYw/edit?usp=drivesdk" target="_blank" rel="noopener noreferrer" aria-label="Xem kịch bản trải nghiệm 3D của Aime’e trên Google Docs"><span class="scenario-doc-icon">▣</span><span class="scenario-doc-copy"><small>TÀI LIỆU THAM KHẢO · AIME’E</small><strong>Xem kịch bản trải nghiệm 3D</strong></span><span class="scenario-doc-arrow">↗</span></a>'
           if 'Xem kịch bản trải nghiệm 3D' not in s:
               marker = '<div class="scope-note">'
               if marker not in s:
                   raise SystemExit('scope-note marker not found')
               s = s.replace(marker, cta + marker, 1)
-
           p.write_text(s, encoding='utf-8')
           PY
 
