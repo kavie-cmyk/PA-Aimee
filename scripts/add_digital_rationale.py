@@ -1,0 +1,57 @@
+from pathlib import Path
+import re
+
+p = Path('index.html')
+s = p.read_text(encoding='utf-8')
+if 'WHY-DIGITAL-EXPERIENCE' in s:
+    print('Rationale section already exists')
+    raise SystemExit(0)
+
+for old, new in [(6, 7), (5, 6), (4, 5), (3, 4), (2, 3)]:
+    s = s.replace(f'id="p{old}"', f'id="p{new}"')
+
+s = s.replace('Trang 1 / 6', 'Trang 1 / 7')
+for old, new in [(2, 3), (3, 4), (4, 5), (5, 6), (6, 7)]:
+    s = s.replace(f'Trang {old} / 6', f'Trang {new} / 7')
+
+s = re.sub(
+    r'<nav class="navdots" aria-label="Điều hướng">.*?</nav>',
+    '<nav class="navdots" aria-label="Điều hướng">' + ''.join(f'<a href="#p{i}" title="Trang {i}"></a>' for i in range(1, 8)) + '</nav>',
+    s,
+    count=1,
+    flags=re.S,
+)
+
+css = '''
+/* WHY-DIGITAL-EXPERIENCE */
+.why-grid{display:grid;grid-template-columns:1.08fr .92fr;gap:26px;align-items:stretch;margin-top:4px}.why-copy{font-size:16px;line-height:1.65;color:#44546e}.why-copy p{margin:0 0 14px}.why-copy p:last-child{margin-bottom:0}.why-visual{position:relative;min-height:280px;border-radius:24px;overflow:hidden;box-shadow:0 18px 46px rgba(8,40,82,.18);background:#dfe8f3}.why-visual img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.why-visual:after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,18,38,.03) 38%,rgba(5,18,38,.88) 100%)}.why-visual-copy{position:absolute;z-index:2;left:22px;right:22px;bottom:20px;color:#fff}.why-visual-copy b{display:block;font-size:20px;line-height:1.25;margin-bottom:5px}.why-visual-copy span{display:block;font-size:12px;line-height:1.5;color:#d9e9fa}.why-evidence-title{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:24px 0 12px}.why-evidence-title h3{margin:0;font-size:19px;color:var(--navy)}.why-evidence-title span{font-size:11px;font-weight:800;color:#6d7b93;text-transform:uppercase;letter-spacing:.08em}.why-evidence{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.evidence-card{position:relative;border-radius:19px;padding:19px;background:#fff;border:1px solid #dce7f3;box-shadow:0 10px 28px rgba(33,72,124,.06);min-height:180px}.evidence-card .e-num{font-size:34px;font-weight:950;letter-spacing:-.04em;color:var(--sava);line-height:1}.evidence-card .e-label{font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#738198;margin:8px 0 9px}.evidence-card p{margin:0;color:#53637d;font-size:12px;line-height:1.5}.evidence-card a{display:inline-block;margin-top:10px;color:#0d58b9;font-size:11px;font-weight:900;text-decoration:none}.evidence-card a:hover{text-decoration:underline}.why-phase{margin-top:16px;border-radius:18px;padding:16px 18px;background:linear-gradient(90deg,#071a3a,#0c4f9e);color:#fff;display:grid;grid-template-columns:38px 1fr;gap:12px;align-items:center}.why-phase .why-phase-icon{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:rgba(255,255,255,.12);font-weight:900}.why-phase b{display:block;font-size:13px;margin-bottom:3px}.why-phase span{display:block;color:#d7e8fb;font-size:12px;line-height:1.45}
+@media(max-width:980px){.why-grid{grid-template-columns:1fr}.why-evidence{grid-template-columns:1fr}.why-visual{min-height:260px}}
+@media(max-width:620px){.why-copy{font-size:15px}.why-evidence-title{align-items:flex-start;flex-direction:column;gap:5px}.why-visual{min-height:230px}}
+'''
+s = s.replace('</style>', css + '</style>', 1)
+
+rationale = '''
+<!-- WHY-DIGITAL-EXPERIENCE -->
+<section class="page soft" id="p2"><div class="page-inner"><div class="headbar"><div class="brandrow"><span class="brandmark">SAVA META</span><span class="divider"></span><span>Business Development</span></div><span class="draft">Dự thảo nội bộ</span></div><div class="eyebrow">Lý do đề xuất</div><h2 class="h2">Lý do đề xuất Digital Experience</h2><div class="why-grid"><div class="why-copy"><p>Khách thường phải quyết định đặt chuyến trước khi trực tiếp lên tàu và trải nghiệm không gian thực tế. Trước thời điểm đó, họ chủ yếu tìm hiểu qua website, hình ảnh, video hoặc tư vấn từ Sales.</p><p>Các nội dung này giúp khách biết sản phẩm có gì, nhưng vẫn có giới hạn khi cần hình dung rõ bố cục, độ rộng của không gian, vị trí các khu vực hay góc nhìn thực tế.</p><p>SAVA đề xuất bổ sung <b>Digital Experience</b> để khách có thể chủ động xem và khám phá một phần không gian Aime’e trước khi đặt chuyến. Trong cùng một trải nghiệm, khách có thể tìm hiểu không gian, xem thêm thông tin về hành trình, đặt câu hỏi hoặc để lại thông tin để Sales liên hệ. Sales cũng có thể sử dụng trực tiếp trải nghiệm này trong lúc tư vấn thay vì chỉ gửi ảnh hoặc mô tả bằng lời.</p></div><div class="why-visual"><img src="assets/reception.webp" alt="Không gian tham khảo Aime’e" loading="lazy" decoding="async"><div class="why-visual-copy"><b>Cho khách xem trước khi quyết định đặt chuyến</b><span>Khách chủ động khám phá không gian; Sales có thêm công cụ để tư vấn trực quan hơn.</span></div></div></div><div class="why-evidence-title"><h3>Có cơ sở để thử</h3><span>Tham khảo từ cruise, hospitality và luxury travel</span></div><div class="why-evidence"><div class="evidence-card"><div class="e-num">128</div><div class="e-label">người · nghiên cứu cruise</div><p>Nghiên cứu so sánh VR với website thông thường ghi nhận nhóm dùng VR hiểu sản phẩm tốt hơn và có đánh giá tích cực hơn về thương hiệu. Nghiên cứu chưa đủ để kết luận VR chắc chắn làm tăng ý định mua ngay.</p><a href="https://www.sciencedirect.com/org/science/article/pii/S0959611921002618" target="_blank" rel="noopener noreferrer">Xem nguồn ↗</a></div><div class="evidence-card"><div class="e-num">569</div><div class="e-label">người · trải nghiệm khách sạn ảo</div><p>Nghiên cứu ghi nhận hình thức khám phá không gian tương tác giúp người dùng thấy việc tìm hiểu khách sạn hữu ích và thú vị hơn, đồng thời có liên hệ tích cực với ý định đặt phòng.</p><a href="https://www.sciencedirect.com/science/article/pii/S1757988019000138" target="_blank" rel="noopener noreferrer">Xem nguồn ↗</a></div><div class="evidence-card"><div class="e-num">5.061</div><div class="e-label">luxury travelers · McKinsey</div><p>77% coi thương hiệu khách sạn là yếu tố quan trọng khi lựa chọn nơi lưu trú và 84% quan tâm tới xếp hạng sao — cho thấy khách cao cấp cần đủ thông tin để đánh giá chất lượng trước khi đặt.</p><a href="https://www.mckinsey.com/industries/travel/our-insights/updating-perceptions-about-todays-luxury-traveler" target="_blank" rel="noopener noreferrer">Xem nguồn ↗</a></div></div><div class="why-phase"><div class="why-phase-icon">→</div><div><b>Phase 1 làm nhỏ trước, nhìn dữ liệu thật rồi mới mở rộng.</b><span>Các số liệu thị trường là cơ sở để thử, không phải cam kết booking sẽ tăng bao nhiêu. Hai bên sẽ nhìn vào mức độ sử dụng, lead/booking phát sinh và phản hồi của Sales trước khi quyết định bước tiếp theo.</span></div></div></div><div class="footerline"></div><div class="pageno">Trang 2 / 7</div></section>
+'''
+
+p1_start = s.find('<section class="page dark" id="p1">')
+if p1_start < 0:
+    raise SystemExit('Cover section not found')
+p1_end = s.find('</section>', p1_start)
+if p1_end < 0:
+    raise SystemExit('Cover end not found')
+p1_end += len('</section>')
+s = s[:p1_end] + rationale + s[p1_end:]
+
+# Keep the Google Docs scenario link and move the button to the Phase 1 scope page.
+s = re.sub(r'<a class="scenario-cta"[^>]*href="https://docs\.google\.com/document/d/15IKrsgezl0s-kGOCobbOzMgLWdagwhnXxfRQ-AeJnYw/[^\"]*"[^>]*>.*?</a>', '', s, flags=re.S)
+s = re.sub(r'<a class="scenario-link"[^>]*href="https://docs\.google\.com/document/d/15IKrsgezl0s-kGOCobbOzMgLWdagwhnXxfRQ-AeJnYw/[^\"]*"[^>]*>.*?</a>', '', s, flags=re.S)
+scenario_cta = '<a class="scenario-cta" href="https://docs.google.com/document/d/15IKrsgezl0s-kGOCobbOzMgLWdagwhnXxfRQ-AeJnYw/edit?usp=drivesdk" target="_blank" rel="noopener noreferrer" aria-label="Xem kịch bản trải nghiệm 3D của Aime’e trên Google Docs"><span class="scenario-doc-icon">▣</span><span class="scenario-doc-copy"><small>TÀI LIỆU THAM KHẢO · AIME’E</small><strong>Xem kịch bản trải nghiệm 3D</strong></span><span class="scenario-doc-arrow">↗</span></a>'
+scope_note = '<div class="scope-note" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.22);color:#d5e7fb">'
+if scope_note not in s:
+    raise SystemExit('Scope note marker not found')
+s = s.replace(scope_note, scenario_cta + scope_note, 1)
+
+p.write_text(s, encoding='utf-8')
+print('Updated index.html')
